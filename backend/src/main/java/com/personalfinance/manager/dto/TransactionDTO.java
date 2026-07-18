@@ -42,4 +42,10 @@ public class TransactionDTO {
     private Long toAccountId; // destination account ID
 
     private String toAccountName;
+
+    private String receiptUrl;
+
+    private Boolean isReimbursable;
+
+    private String reimbursementStatus;
 }

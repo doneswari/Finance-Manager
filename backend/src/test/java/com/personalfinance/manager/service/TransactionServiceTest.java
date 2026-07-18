@@ -72,7 +72,7 @@ public class TransactionServiceTest {
                 .name("Checking Account")
                 .type(AccountType.BANK)
                 .balance(new BigDecimal("1000.00"))
-                .currency("USD")
+                .currency("INR")
                 .build();
         AccountDTO createdAccount = accountService.createAccount(accountDTO);
         assertNotNull(createdAccount.getId());
@@ -109,7 +109,7 @@ public class TransactionServiceTest {
                 .name("Wallet Cash")
                 .type(AccountType.CASH)
                 .balance(new BigDecimal("50.00"))
-                .currency("USD")
+                .currency("INR")
                 .build();
         AccountDTO createdAccount = accountService.createAccount(accountDTO);
 
@@ -144,7 +144,7 @@ public class TransactionServiceTest {
                 .name("Checking Account")
                 .type(AccountType.BANK)
                 .balance(new BigDecimal("1000.00"))
-                .currency("USD")
+                .currency("INR")
                 .build();
         AccountDTO sourceAccount = accountService.createAccount(bankDTO);
 
@@ -153,7 +153,7 @@ public class TransactionServiceTest {
                 .name("Wallet Cash")
                 .type(AccountType.CASH)
                 .balance(new BigDecimal("50.00"))
-                .currency("USD")
+                .currency("INR")
                 .build();
         AccountDTO destAccount = accountService.createAccount(cashDTO);
 
@@ -181,5 +181,82 @@ public class TransactionServiceTest {
 
         assertEquals(0, new BigDecimal("900.00").compareTo(updatedSource.getBalance()));
         assertEquals(0, new BigDecimal("150.00").compareTo(updatedDest.getBalance()));
+    }
+
+    @Test
+    void testCreateExpenseTransactionWithInsufficientBalanceThrowsException() {
+        // 1. Create a bank account with initial balance $100.00
+        AccountDTO accountDTO = AccountDTO.builder()
+                .name("Checking Account")
+                .type(AccountType.BANK)
+                .balance(new BigDecimal("100.00"))
+                .currency("INR")
+                .build();
+        AccountDTO createdAccount = accountService.createAccount(accountDTO);
+        assertNotNull(createdAccount.getId());
+
+        // 2. Fetch a default category (e.g., Food & Dining)
+        List<CategoryDTO> categories = categoryService.getAllCategories();
+        CategoryDTO foodCategory = categories.stream()
+                .filter(c -> c.getName().equals("Food & Dining"))
+                .findFirst()
+                .orElseThrow();
+
+        // 3. Create an EXPENSE transaction of $150.00 (which exceeds $100.00 balance)
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .description("Grocery Shopping")
+                .amount(new BigDecimal("150.00"))
+                .date(LocalDateTime.now())
+                .type(TransactionType.EXPENSE)
+                .categoryId(foodCategory.getId())
+                .fromAccountId(createdAccount.getId())
+                .build();
+
+        // 4. Verify that BadRequestException is thrown
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.personalfinance.manager.exception.BadRequestException.class,
+                () -> transactionService.createTransaction(transactionDTO)
+        );
+    }
+
+    @Test
+    void testCreateTransferTransactionWithInsufficientBalanceThrowsException() {
+        // 1. Create source bank account with initial balance $50.00
+        AccountDTO bankDTO = AccountDTO.builder()
+                .name("Checking Account")
+                .type(AccountType.BANK)
+                .balance(new BigDecimal("50.00"))
+                .currency("INR")
+                .build();
+        AccountDTO sourceAccount = accountService.createAccount(bankDTO);
+
+        // 2. Create destination cash account with initial balance $50.00
+        AccountDTO cashDTO = AccountDTO.builder()
+                .name("Wallet Cash")
+                .type(AccountType.CASH)
+                .balance(new BigDecimal("50.00"))
+                .currency("INR")
+                .build();
+        AccountDTO destAccount = accountService.createAccount(cashDTO);
+
+        // 3. Fetch any default category
+        CategoryDTO category = categoryService.getAllCategories().get(0);
+
+        // 4. Create a TRANSFER transaction of $100.00 (exceeds source balance of $50.00)
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .description("Atm Withdrawal")
+                .amount(new BigDecimal("100.00"))
+                .date(LocalDateTime.now())
+                .type(TransactionType.TRANSFER)
+                .categoryId(category.getId())
+                .fromAccountId(sourceAccount.getId())
+                .toAccountId(destAccount.getId())
+                .build();
+
+        // 5. Verify that BadRequestException is thrown
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.personalfinance.manager.exception.BadRequestException.class,
+                () -> transactionService.createTransaction(transactionDTO)
+        );
     }
 }

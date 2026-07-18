@@ -3,26 +3,37 @@ import api from '../services/api';
 import Modal from '../components/Modal';
 import { Plus, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 
+const getCurrencySymbol = (currency) => {
+  switch (currency?.toUpperCase()) {
+    case 'INR': return '₹';
+    case 'EUR': return '€';
+    case 'GBP': return '£';
+    default: return '$';
+  }
+};
+
 const Budgets = () => {
   const [budgets, setBudgets] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
   const [limitAmount, setLimitAmount] = useState('');
   const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [error, setError] = useState('');
 
   const fetchAllData = async () => {
     try {
-      const [budRes, catRes] = await Promise.all([
+      const [budRes, catRes, accRes] = await Promise.all([
         api.get('/budgets'),
-        api.get('/categories')
+        api.get('/categories'),
+        api.get('/accounts')
       ]);
       setBudgets(budRes.data);
+      setAccounts(accRes.data);
       const expenseCategories = catRes.data.filter(c => c.type === 'EXPENSE');
       setCategories(expenseCategories);
       if (expenseCategories.length > 0) {
@@ -34,6 +45,9 @@ const Budgets = () => {
       setLoading(false);
     }
   };
+
+  const primaryCurrency = accounts.find(a => a.currency === 'INR') ? 'INR' : (accounts[0]?.currency || 'INR');
+  const currencySymbol = getCurrencySymbol(primaryCurrency);
 
   useEffect(() => {
     fetchAllData();
@@ -47,13 +61,11 @@ const Budgets = () => {
       await api.post('/budgets', {
         limitAmount: parseFloat(limitAmount),
         startDate,
-        endDate,
         categoryId: parseInt(categoryId),
       });
       setIsModalOpen(false);
       setLimitAmount('');
       setStartDate('');
-      setEndDate('');
       fetchAllData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create budget limit');
@@ -100,7 +112,7 @@ const Budgets = () => {
                 <div>
                   <h3 style={styles.catName}>{b.categoryName}</h3>
                   <p style={styles.dates}>
-                    {new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()}
+                    Starts: {new Date(b.startDate).toLocaleDateString()}
                   </p>
                 </div>
                 <button onClick={() => handleDelete(b.id)} style={styles.deleteBtn}>
@@ -110,8 +122,8 @@ const Budgets = () => {
 
               <div style={styles.gaugeContainer}>
                 <div style={styles.gaugeLabels}>
-                  <span>Spent: <strong>${b.currentAmount.toFixed(2)}</strong></span>
-                  <span>Limit: <strong>${b.limitAmount.toFixed(2)}</strong></span>
+                  <span>Spent: <strong>{currencySymbol}{b.currentAmount.toFixed(2)}</strong></span>
+                  <span>Limit: <strong>{currencySymbol}{b.limitAmount.toFixed(2)}</strong></span>
                 </div>
                 
                 <div style={styles.progressBarBg}>
@@ -122,7 +134,7 @@ const Budgets = () => {
                   {isOver ? (
                     <span style={styles.alertText(true)}>
                       <AlertTriangle size={14} style={{ marginRight: '4px' }} />
-                      Limit Exceeded! Over by ${(b.currentAmount - b.limitAmount).toFixed(2)}
+                      Limit Exceeded! Over by {currencySymbol}{(b.currentAmount - b.limitAmount).toFixed(2)}
                     </span>
                   ) : isWarning ? (
                     <span style={styles.alertText(false)}>
@@ -172,40 +184,27 @@ const Budgets = () => {
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Budget Limit Amount ($)</label>
+            <label style={styles.label}>Budget Limit Amount ({currencySymbol})</label>
             <input 
               type="number" 
               step="0.01"
               value={limitAmount} 
               onChange={(e) => setLimitAmount(e.target.value)} 
               className="glass-input" 
-              placeholder="500.00"
+              placeholder="5000.00"
               required 
             />
           </div>
 
-          <div style={styles.formRow}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Start Date</label>
-              <input 
-                type="date" 
-                value={startDate} 
-                onChange={(e) => setStartDate(e.target.value)} 
-                className="glass-input" 
-                required 
-              />
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>End Date</label>
-              <input 
-                type="date" 
-                value={endDate} 
-                onChange={(e) => setEndDate(e.target.value)} 
-                className="glass-input" 
-                required 
-              />
-            </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Start Date</label>
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={(e) => setStartDate(e.target.value)} 
+              className="glass-input" 
+              required 
+            />
           </div>
 
           <div style={styles.actions}>

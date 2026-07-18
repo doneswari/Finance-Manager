@@ -4,6 +4,8 @@ C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\ja
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\controller\AuthController.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\controller\BudgetController.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\controller\CategoryController.java
+C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\controller\ReceiptController.java
+C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\controller\RecurringExpenseController.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\controller\ReportController.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\controller\TransactionController.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\dto\AccountDTO.java
@@ -11,6 +13,7 @@ C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\ja
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\dto\AuthResponse.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\dto\BudgetDTO.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\dto\CategoryDTO.java
+C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\dto\RecurringExpenseDTO.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\dto\SignupRequest.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\dto\TransactionDTO.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\exception\BadRequestException.java
@@ -21,6 +24,8 @@ C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\ja
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\model\AccountType.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\model\Budget.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\model\Category.java
+C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\model\RecurrenceFrequency.java
+C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\model\RecurringExpense.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\model\Transaction.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\model\TransactionType.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\model\User.java
@@ -28,6 +33,7 @@ C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\ja
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\repository\AccountRepository.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\repository\BudgetRepository.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\repository\CategoryRepository.java
+C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\repository\RecurringExpenseRepository.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\repository\TransactionRepository.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\repository\UserRepository.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\security\CustomUserDetails.java
@@ -42,6 +48,8 @@ C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\ja
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\service\CategoryServiceImpl.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\service\ExportService.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\service\ExportServiceImpl.java
+C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\service\RecurringExpenseService.java
+C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\service\RecurringExpenseServiceImpl.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\service\TransactionService.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\service\TransactionServiceImpl.java
 C:\Users\MY LENOVO\OneDrive\Desktop\Personal Finance manager\backend\src\main\java\com\personalfinance\manager\service\UserService.java

@@ -48,4 +48,13 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "receipt_url", nullable = true)
+    private String receiptUrl;
+
+    @Column(name = "is_reimbursable", nullable = true)
+    private Boolean isReimbursable;
+
+    @Column(name = "reimbursement_status", nullable = true)
+    private String reimbursementStatus; // e.g. PENDING, SUBMITTED, REIMBURSED
 }

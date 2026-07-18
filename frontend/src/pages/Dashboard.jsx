@@ -22,7 +22,9 @@ import {
   Compass,
   Calendar,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Wallet,
+  Landmark
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -164,12 +166,31 @@ const Dashboard = () => {
   const savingsRate = monthlyIncome > 0 ? ((monthlyIncome - monthlyExpense) / monthlyIncome) * 100 : 0;
   
   const cashAccountsBalance = accounts
-    .filter(a => a.type === 'BANK' || a.type === 'CASH')
+    .filter(a => a.type === 'BANK' || a.type === 'CASH' || a.type === 'WALLET')
     .reduce((acc, curr) => acc + curr.balance, 0);
 
   const investmentAccountsBalance = accounts
     .filter(a => a.type === 'INVESTMENT')
     .reduce((acc, curr) => acc + curr.balance, 0);
+
+  const getCurrencySymbol = (currency) => {
+    switch (currency?.toUpperCase()) {
+      case 'INR': return '₹';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      default: return '$';
+    }
+  };
+
+  const primaryCurrency = accounts.find(a => a.currency === 'INR') ? 'INR' : (accounts[0]?.currency || 'INR');
+  const currencySymbol = getCurrencySymbol(primaryCurrency);
+
+  const getTransactionCurrencySymbol = (t) => {
+    const accountId = t.fromAccountId || t.toAccountId;
+    if (!accountId) return currencySymbol;
+    const acc = accounts.find(a => a.id === accountId);
+    return getCurrencySymbol(acc?.currency) || currencySymbol;
+  };
 
   return (
     <div style={styles.container} className="fade-in">
@@ -192,7 +213,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p style={styles.metricLabel}>Net Worth</p>
-            <h3 style={styles.metricVal}>${netWorth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+            <h3 style={styles.metricVal}>{currencySymbol}{netWorth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </div>
 
@@ -202,7 +223,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p style={styles.metricLabel}>Monthly Income</p>
-            <h3 style={styles.metricVal}>${monthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+            <h3 style={styles.metricVal}>{currencySymbol}{monthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </div>
 
@@ -212,7 +233,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p style={styles.metricLabel}>Monthly Expenses</p>
-            <h3 style={styles.metricVal}>${monthlyExpense.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+            <h3 style={styles.metricVal}>{currencySymbol}{monthlyExpense.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </div>
       </div>
@@ -242,8 +263,8 @@ const Dashboard = () => {
               Liquidity Health Check
             </span>
             <p style={styles.insightText}>
-              {cashAccountsBalance > investmentAccountsBalance && cashAccountsBalance > 2000
-                ? "High idle cash reserves detected. Vantage suggests moving $500 into investments to optimize yields."
+              {cashAccountsBalance > investmentAccountsBalance && cashAccountsBalance > (primaryCurrency === 'INR' ? 160000 : 2000)
+                ? `High idle cash reserves detected. Vantage suggests moving ${currencySymbol}${primaryCurrency === 'INR' ? '40,000' : '500'} into investments to optimize yields.`
                 : "Balanced allocation ratio between liquid checking assets and investment growth holdings."}
             </p>
           </div>
@@ -358,7 +379,7 @@ const Dashboard = () => {
                         <span style={styles.badge(t.type)}>{t.type}</span>
                       </td>
                       <td style={{...styles.td, ...styles.amountText(t.type)}}>
-                        {t.type === 'EXPENSE' ? '-' : '+'}${t.amount.toFixed(2)}
+                        {t.type === 'EXPENSE' ? '-' : '+'}{getTransactionCurrencySymbol(t)}{t.amount.toFixed(2)}
                       </td>
                     </tr>
                   ))}
@@ -370,8 +391,43 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* FEATURE B: Interactive Goal Tracker */}
-        <div className="glass-card" style={styles.recentTransactions}>
+      {/* My Wallets & Accounts balances widget */}
+      <div className="glass-card" style={styles.recentTransactions}>
+        <div style={styles.sectionHeader}>
+          <h3 style={styles.chartTitle}>My Wallets</h3>
+          <Link to="/accounts" style={styles.viewAll}>Manage</Link>
+        </div>
+        <div style={styles.accountsListContainer}>
+          {accounts.map(acc => (
+            <div key={acc.id} style={styles.accountItemRow}>
+              <div style={styles.accountLeft}>
+                <div style={styles.accountIconWrap(acc.type)}>
+                  {acc.type === 'BANK' && <Landmark size={18} color="var(--accent-primary)" />}
+                  {acc.type === 'CASH' && <Wallet size={18} color="var(--success)" />}
+                  {acc.type === 'CREDIT_CARD' && <CreditCard size={18} color="var(--danger)" />}
+                  {acc.type === 'INVESTMENT' && <TrendingUp size={18} color="var(--warning)" />}
+                </div>
+                <div style={styles.accountMeta}>
+                  <span style={styles.accountNameText}>{acc.name}</span>
+                  <span style={styles.accountTypeText}>{acc.type}</span>
+                </div>
+              </div>
+              <div style={styles.accountRight}>
+                <span style={styles.accountBalanceText}>
+                  {getCurrencySymbol(acc.currency)}{acc.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <span style={styles.accountCurrencyText}>{acc.currency}</span>
+              </div>
+            </div>
+          ))}
+          {accounts.length === 0 && (
+            <div style={styles.noAccounts}>No active wallets or accounts registered.</div>
+          )}
+        </div>
+      </div>
+
+      {/* FEATURE B: Interactive Goal Tracker */}
+      <div className="glass-card" style={styles.recentTransactions}>
           <div style={styles.sectionHeader}>
             <h3 style={styles.chartTitle}>Interactive Savings Goals</h3>
             <button 
@@ -396,7 +452,7 @@ const Dashboard = () => {
               <div style={styles.inputGroup}>
                 <input 
                   type="number" 
-                  placeholder="Target Amount ($)"
+                  placeholder={`Target Amount (${currencySymbol})`}
                   value={goalTarget}
                   onChange={e => setGoalTarget(e.target.value)}
                   style={styles.formInput}
@@ -451,14 +507,14 @@ const Dashboard = () => {
                       </div>
                       <div style={styles.progressLabels}>
                         <span>{progressPercentage}% Funded</span>
-                        <span>${mockProgress.toLocaleString()} / ${g.target.toLocaleString()}</span>
+                        <span>{currencySymbol}{mockProgress.toLocaleString()} / {currencySymbol}{g.target.toLocaleString()}</span>
                       </div>
                     </div>
 
                     {progressPercentage < 100 && (
                       <div style={styles.goalRecommendation}>
                         <AlertCircle size={12} color="var(--accent-secondary)" style={{marginRight: '6px'}} />
-                        <span>Save **${monthlySavingsRequired.toFixed(0)} / mo** to hit target deadline.</span>
+                        <span>Save <strong>{currencySymbol}{monthlySavingsRequired.toFixed(0)} / mo</strong> to hit target deadline.</span>
                       </div>
                     )}
                   </div>
@@ -746,15 +802,6 @@ const styles = {
     border: 'none',
     color: 'var(--text-muted)',
     cursor: 'pointer',
-    padding: '4px',
-    borderRadius: '4px',
-    transition: 'var(--transition-fast)',
-  },
-  deleteGoalBtn: {
-    background: 'transparent',
-    border: 'none',
-    color: 'var(--text-muted)',
-    cursor: 'pointer',
     transition: 'var(--transition-fast)',
   },
   goalProgressWrap: {
@@ -802,6 +849,76 @@ const styles = {
     color: 'var(--text-muted)',
     fontSize: '0.85rem',
     textAlign: 'center',
+  },
+  accountsListContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+    marginTop: '0.5rem',
+    maxHeight: '320px',
+    overflowY: 'auto',
+  },
+  accountItemRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0.75rem 1rem',
+    background: 'rgba(255, 255, 255, 0.01)',
+    borderRadius: '12px',
+    border: '1px solid var(--border-glass)',
+    transition: 'var(--transition-fast)',
+  },
+  accountLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  accountIconWrap: (type) => ({
+    width: '36px',
+    height: '36px',
+    borderRadius: '8px',
+    backgroundColor: type === 'BANK' ? 'rgba(99, 102, 241, 0.08)' : type === 'CASH' ? 'rgba(16, 185, 129, 0.08)' : type === 'CREDIT_CARD' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: `1px solid ${type === 'BANK' ? 'rgba(99, 102, 241, 0.15)' : type === 'CASH' ? 'rgba(16, 185, 129, 0.15)' : type === 'CREDIT_CARD' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`,
+  }),
+  accountMeta: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  accountNameText: {
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  },
+  accountTypeText: {
+    fontSize: '0.7rem',
+    color: 'var(--text-secondary)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    marginTop: '2px',
+  },
+  accountRight: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  accountBalanceText: {
+    fontSize: '1.05rem',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+  },
+  accountCurrencyText: {
+    fontSize: '0.7rem',
+    color: 'var(--text-muted)',
+    fontWeight: 500,
+  },
+  noAccounts: {
+    textAlign: 'center',
+    padding: '2rem 1rem',
+    color: 'var(--text-muted)',
+    fontSize: '0.85rem',
   },
 };
 

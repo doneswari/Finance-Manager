@@ -91,6 +91,9 @@ public class TransactionServiceImpl implements TransactionService {
                 .type(dto.getType())
                 .category(category)
                 .user(currentUser)
+                .receiptUrl(dto.getReceiptUrl())
+                .isReimbursable(dto.getIsReimbursable() != null ? dto.getIsReimbursable() : false)
+                .reimbursementStatus(dto.getReimbursementStatus())
                 .build();
 
         // Process Accounts & Balances
@@ -128,6 +131,9 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setDate(dto.getDate() != null ? dto.getDate() : LocalDateTime.now());
         transaction.setType(dto.getType());
         transaction.setCategory(category);
+        transaction.setReceiptUrl(dto.getReceiptUrl());
+        transaction.setIsReimbursable(dto.getIsReimbursable() != null ? dto.getIsReimbursable() : false);
+        transaction.setReimbursementStatus(dto.getReimbursementStatus());
 
         // 4. Apply new balance impact
         applyBalanceChanges(transaction, dto.getFromAccountId(), dto.getToAccountId());
@@ -166,6 +172,9 @@ public class TransactionServiceImpl implements TransactionService {
                 throw new BadRequestException("Source Account (fromAccountId) is required for EXPENSE");
             }
             Account fromAccount = accountService.getAccountEntity(fromAccountId);
+            if (fromAccount.getBalance().compareTo(transaction.getAmount()) < 0) {
+                throw new BadRequestException("Insufficient balance");
+            }
             fromAccount.setBalance(fromAccount.getBalance().subtract(transaction.getAmount()));
             accountRepository.save(fromAccount);
             transaction.setFromAccount(fromAccount);
@@ -191,6 +200,9 @@ public class TransactionServiceImpl implements TransactionService {
             Account fromAccount = accountService.getAccountEntity(fromAccountId);
             Account toAccount = accountService.getAccountEntity(toAccountId);
             
+            if (fromAccount.getBalance().compareTo(transaction.getAmount()) < 0) {
+                throw new BadRequestException("Insufficient balance");
+            }
             fromAccount.setBalance(fromAccount.getBalance().subtract(transaction.getAmount()));
             toAccount.setBalance(toAccount.getBalance().add(transaction.getAmount()));
             
@@ -238,6 +250,9 @@ public class TransactionServiceImpl implements TransactionService {
                 .fromAccountName(t.getFromAccount() != null ? t.getFromAccount().getName() : null)
                 .toAccountId(t.getToAccount() != null ? t.getToAccount().getId() : null)
                 .toAccountName(t.getToAccount() != null ? t.getToAccount().getName() : null)
+                .receiptUrl(t.getReceiptUrl())
+                .isReimbursable(t.getIsReimbursable())
+                .reimbursementStatus(t.getReimbursementStatus())
                 .build();
     }
 }

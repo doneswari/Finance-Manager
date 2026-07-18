@@ -59,19 +59,17 @@ public class BudgetServiceImpl implements BudgetService {
         User currentUser = userService.getCurrentUser();
         Category category = categoryService.getCategoryEntity(dto.getCategoryId());
 
-        // Calculate dynamic current spent amount
-        BigDecimal currentSpent = transactionRepository.sumExpensesByCategoryAndDateRange(
+        // Calculate dynamic current spent amount from startDate onwards
+        BigDecimal currentSpent = transactionRepository.sumExpensesByCategoryFromDate(
                 currentUser.getId(), 
                 category.getId(), 
-                dto.getStartDate().atStartOfDay(), 
-                dto.getEndDate().atTime(23, 59, 59)
+                dto.getStartDate().atStartOfDay()
         );
 
         Budget budget = Budget.builder()
                 .limitAmount(dto.getLimitAmount())
                 .currentAmount(currentSpent)
                 .startDate(dto.getStartDate())
-                .endDate(dto.getEndDate())
                 .category(category)
                 .user(currentUser)
                 .build();
@@ -88,18 +86,16 @@ public class BudgetServiceImpl implements BudgetService {
 
         Category category = categoryService.getCategoryEntity(dto.getCategoryId());
 
-        // Calculate dynamic current spent amount
-        BigDecimal currentSpent = transactionRepository.sumExpensesByCategoryAndDateRange(
+        // Calculate dynamic current spent amount from startDate onwards
+        BigDecimal currentSpent = transactionRepository.sumExpensesByCategoryFromDate(
                 currentUser.getId(), 
                 category.getId(), 
-                dto.getStartDate().atStartOfDay(), 
-                dto.getEndDate().atTime(23, 59, 59)
+                dto.getStartDate().atStartOfDay()
         );
 
         budget.setLimitAmount(dto.getLimitAmount());
         budget.setCurrentAmount(currentSpent);
         budget.setStartDate(dto.getStartDate());
-        budget.setEndDate(dto.getEndDate());
         budget.setCategory(category);
 
         return convertToDTO(budgetRepository.save(budget));
@@ -118,9 +114,9 @@ public class BudgetServiceImpl implements BudgetService {
     @Transactional
     public void updateBudgetOnExpense(BigDecimal amount, Long categoryId, LocalDate date) {
         User currentUser = userService.getCurrentUser();
-        Optional<Budget> activeBudgetOpt = budgetRepository.findActiveBudget(currentUser.getId(), categoryId, date);
-        if (activeBudgetOpt.isPresent()) {
-            Budget budget = activeBudgetOpt.get();
+        List<Budget> activeBudgets = budgetRepository.findActiveBudgetsOrderByStartDateDesc(currentUser.getId(), categoryId, date);
+        if (!activeBudgets.isEmpty()) {
+            Budget budget = activeBudgets.get(0);
             budget.setCurrentAmount(budget.getCurrentAmount().add(amount));
             budgetRepository.save(budget);
         }
@@ -133,7 +129,6 @@ public class BudgetServiceImpl implements BudgetService {
                 .limitAmount(b.getLimitAmount())
                 .currentAmount(b.getCurrentAmount())
                 .startDate(b.getStartDate())
-                .endDate(b.getEndDate())
                 .categoryId(b.getCategory().getId())
                 .categoryName(b.getCategory().getName())
                 .isExceeded(isExceeded)

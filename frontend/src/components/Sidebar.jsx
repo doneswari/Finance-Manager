@@ -9,7 +9,9 @@ import {
   LogOut, 
   Coins,
   Tag,
-  Percent
+  Percent,
+  Receipt,
+  Wallet
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -18,10 +20,11 @@ const Sidebar = () => {
   const menuItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Accounts', path: '/accounts', icon: CreditCard },
+    { name: 'Wallet Manager', path: '/wallets', icon: Wallet },
     { name: 'Transactions', path: '/transactions', icon: ArrowLeftRight },
     { name: 'Budgets', path: '/budgets', icon: PieChart },
+    { name: 'Expenses & Bills', path: '/expenses', icon: Receipt },
     { name: 'Categories', path: '/categories', icon: Tag },
-    { name: 'Yield Calculator', path: '/investment-calculator', icon: Percent },
   ];
 
   return (

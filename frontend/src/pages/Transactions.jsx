@@ -9,8 +9,19 @@ import {
   FileText,
   Search,
   Filter,
-  ArrowRight
+  ArrowRight,
+  Eye,
+  Paperclip
 } from 'lucide-react';
+
+const getCurrencySymbol = (currency) => {
+  switch (currency?.toUpperCase()) {
+    case 'INR': return '₹';
+    case 'EUR': return '€';
+    case 'GBP': return '£';
+    default: return '$';
+  }
+};
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -30,6 +41,44 @@ const Transactions = () => {
   const [categoryId, setCategoryId] = useState('');
   const [fromAccountId, setFromAccountId] = useState('');
   const [toAccountId, setToAccountId] = useState('');
+  const [receiptUrl, setReceiptUrl] = useState('');
+  const [isReimbursable, setIsReimbursable] = useState(false);
+  const [reimbursementStatus, setReimbursementStatus] = useState('PENDING');
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [previewReceiptUrl, setPreviewReceiptUrl] = useState('');
+
+  const primaryCurrency = accounts.find(a => a.currency === 'INR') ? 'INR' : (accounts[0]?.currency || 'INR');
+  const currencySymbol = getCurrencySymbol(primaryCurrency);
+
+  const getTransactionCurrencySymbol = (t) => {
+    const accountId = t.fromAccountId || t.toAccountId;
+    if (!accountId) return currencySymbol;
+    const acc = accounts.find(a => a.id === accountId);
+    return getCurrencySymbol(acc?.currency) || currencySymbol;
+  };
+
+  const handleReceiptUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setUploadingReceipt(true);
+    try {
+      const res = await api.post('/receipts/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setReceiptUrl(res.data.receiptUrl);
+    } catch (err) {
+      console.error('Failed to upload receipt', err);
+      alert('Failed to upload receipt. Please try again.');
+    } finally {
+      setUploadingReceipt(false);
+    }
+  };
 
   // Filtering State
   const [selectedAccount, setSelectedAccount] = useState('');
@@ -73,6 +122,9 @@ const Transactions = () => {
       date: date ? new Date(date).toISOString() : new Date().toISOString(),
       type,
       categoryId: parseInt(categoryId),
+      receiptUrl,
+      isReimbursable: type === 'EXPENSE' ? isReimbursable : false,
+      reimbursementStatus: type === 'EXPENSE' && isReimbursable ? reimbursementStatus : null
     };
 
     if (type === 'EXPENSE') {
@@ -90,6 +142,9 @@ const Transactions = () => {
       setDescription('');
       setAmount('');
       setDate('');
+      setReceiptUrl('');
+      setIsReimbursable(false);
+      setReimbursementStatus('PENDING');
       fetchAllData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to record transaction');
@@ -220,7 +275,16 @@ const Transactions = () => {
               {filteredTransactions.map((t) => (
                 <tr key={t.id} style={styles.tr}>
                   <td style={styles.td}>{new Date(t.date).toLocaleDateString()}</td>
-                  <td style={styles.td}>{t.description || '-'}</td>
+                  <td style={styles.td}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span>{t.description || '-'}</span>
+                      {t.isReimbursable && (
+                        <span style={styles.reimbursementLabel(t.reimbursementStatus)}>
+                          Reimbursable: {t.reimbursementStatus}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td style={styles.td}>{t.categoryName}</td>
                   <td style={styles.td}>
                     <span style={styles.badge(t.type)}>{t.type}</span>
@@ -235,12 +299,23 @@ const Transactions = () => {
                     )}
                   </td>
                   <td style={{...styles.td, ...styles.amountText(t.type)}}>
-                    {t.type === 'EXPENSE' ? '-' : '+'}${t.amount.toFixed(2)}
+                    {t.type === 'EXPENSE' ? '-' : '+'}{getTransactionCurrencySymbol(t)}{t.amount.toFixed(2)}
                   </td>
                   <td style={styles.td}>
-                    <button onClick={() => handleDelete(t.id)} style={styles.deleteBtn}>
-                      <Trash2 size={16} />
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {t.receiptUrl && (
+                        <button 
+                          onClick={() => setPreviewReceiptUrl(t.receiptUrl)} 
+                          style={styles.actionBtn}
+                          title="View Receipt"
+                        >
+                          <Eye size={16} />
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(t.id)} style={styles.deleteBtn}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -358,8 +433,63 @@ const Transactions = () => {
             />
           </div>
 
+          {type === 'EXPENSE' && (
+            <div style={{...styles.formRow, alignItems: 'center', gap: '1rem', flexWrap: 'wrap'}}>
+              <label style={{...styles.label, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, minWidth: '200px'}}>
+                <input 
+                  type="checkbox" 
+                  checked={isReimbursable} 
+                  onChange={(e) => setIsReimbursable(e.target.checked)} 
+                />
+                <span>Reimbursable Business Expense</span>
+              </label>
+              
+              {isReimbursable && (
+                <div style={styles.formGroup}>
+                  <select 
+                    value={reimbursementStatus} 
+                    onChange={(e) => setReimbursementStatus(e.target.value)} 
+                    className="glass-input" 
+                    style={styles.select}
+                  >
+                    <option value="PENDING">Pending Approval</option>
+                    <option value="SUBMITTED">Submitted</option>
+                    <option value="REIMBURSED">Reimbursed</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Attach Receipt</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleReceiptUpload} 
+                style={{ display: 'none' }}
+                id="receipt-upload"
+              />
+              <label htmlFor="receipt-upload" className="btn-secondary" style={{ cursor: 'pointer', margin: 0, padding: '0.65rem 1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Paperclip size={16} />
+                <span>{uploadingReceipt ? 'Uploading...' : 'Choose File'}</span>
+              </label>
+              {receiptUrl && (
+                <span style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  ✓ Receipt Attached
+                </span>
+              )}
+            </div>
+          </div>
+
           <div style={styles.actions}>
-            <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">
+            <button type="button" onClick={() => {
+              setIsModalOpen(false);
+              setReceiptUrl('');
+              setIsReimbursable(false);
+              setReimbursementStatus('PENDING');
+            }} className="btn-secondary">
               Cancel
             </button>
             <button type="submit" className="btn-primary">
@@ -367,6 +497,17 @@ const Transactions = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Receipt Preview Modal */}
+      <Modal isOpen={!!previewReceiptUrl} onClose={() => setPreviewReceiptUrl('')} title="Receipt Attachment Preview">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+          <img 
+            src={"http://localhost:8080" + previewReceiptUrl} 
+            alt="Receipt Attachment" 
+            style={{ maxWidth: '100%', maxHeight: '70vh', borderRadius: '12px', border: '1px solid var(--border-glass)' }} 
+          />
+        </div>
       </Modal>
     </div>
   );
@@ -573,6 +714,24 @@ const styles = {
     borderRadius: '8px',
     fontSize: '0.85rem',
   },
+  actionBtn: {
+    background: 'transparent',
+    border: 'none',
+    color: 'var(--accent-primary)',
+    cursor: 'pointer',
+    padding: '6px',
+    borderRadius: '6px',
+    transition: 'var(--transition-fast)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reimbursementLabel: (status) => ({
+    fontSize: '0.75rem',
+    fontWeight: 500,
+    marginTop: '0.2rem',
+    color: status === 'REIMBURSED' ? 'var(--success)' : status === 'SUBMITTED' ? 'var(--accent-secondary)' : 'var(--warning)',
+  }),
 };
 
 export default Transactions;

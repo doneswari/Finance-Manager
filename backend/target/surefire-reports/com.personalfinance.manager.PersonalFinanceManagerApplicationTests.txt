@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.personalfinance.manager.PersonalFinanceManagerApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 31.37 s -- in com.personalfinance.manager.PersonalFinanceManagerApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 51.00 s -- in com.personalfinance.manager.PersonalFinanceManagerApplicationTests

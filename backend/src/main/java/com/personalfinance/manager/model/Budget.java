@@ -30,8 +30,7 @@ public class Budget {
     @Column(nullable = false)
     private LocalDate startDate;
 
-    @Column(nullable = false)
-    private LocalDate endDate;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

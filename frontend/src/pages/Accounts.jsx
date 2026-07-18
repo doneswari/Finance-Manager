@@ -3,6 +3,15 @@ import api from '../services/api';
 import Modal from '../components/Modal';
 import { Plus, Trash2, Landmark, Wallet, CreditCard, BarChart2 } from 'lucide-react';
 
+const getCurrencySymbol = (currency) => {
+  switch (currency?.toUpperCase()) {
+    case 'INR': return '₹';
+    case 'EUR': return '€';
+    case 'GBP': return '£';
+    default: return '$';
+  }
+};
+
 const Accounts = () => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +21,7 @@ const Accounts = () => {
   const [name, setName] = useState('');
   const [type, setType] = useState('BANK');
   const [balance, setBalance] = useState('');
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('INR');
   const [error, setError] = useState('');
 
   const fetchAccounts = async () => {
@@ -67,6 +76,7 @@ const Accounts = () => {
       case 'CASH': return <Wallet size={24} color="var(--success)" />;
       case 'CREDIT_CARD': return <CreditCard size={24} color="var(--danger)" />;
       case 'INVESTMENT': return <BarChart2 size={24} color="var(--warning)" />;
+      case 'WALLET': return <Wallet size={24} color="var(--accent-secondary)" />;
       default: return <Landmark size={24} color="var(--text-secondary)" />;
     }
   };
@@ -104,7 +114,7 @@ const Accounts = () => {
               <h3 style={styles.accName}>{acc.name}</h3>
               <p style={styles.accType}>{acc.type.replace('_', ' ')}</p>
               <h2 style={styles.accBalance}>
-                ${acc.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {getCurrencySymbol(acc.currency)}{acc.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 <span style={styles.currency}> {acc.currency}</span>
               </h2>
             </div>
@@ -148,6 +158,7 @@ const Accounts = () => {
             >
               <option value="BANK">Bank Account</option>
               <option value="CASH">Cash Wallet</option>
+              <option value="WALLET">Digital Wallet (PayPal, Paytm, Apple Pay)</option>
               <option value="CREDIT_CARD">Credit Card</option>
               <option value="INVESTMENT">Investment Account</option>
             </select>
@@ -173,7 +184,7 @@ const Accounts = () => {
               value={currency} 
               onChange={(e) => setCurrency(e.target.value)} 
               className="glass-input" 
-              placeholder="USD"
+              placeholder="INR"
               required 
             />
           </div>
@@ -251,11 +262,11 @@ const styles = {
     width: '46px',
     height: '46px',
     borderRadius: '10px',
-    backgroundColor: type === 'BANK' ? 'rgba(99, 102, 241, 0.08)' : type === 'CASH' ? 'rgba(16, 185, 129, 0.08)' : type === 'CREDIT_CARD' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+    backgroundColor: type === 'BANK' ? 'rgba(99, 102, 241, 0.08)' : type === 'CASH' ? 'rgba(16, 185, 129, 0.08)' : type === 'WALLET' ? 'rgba(6, 182, 212, 0.08)' : type === 'CREDIT_CARD' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.08)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: `1px solid ${type === 'BANK' ? 'rgba(99, 102, 241, 0.15)' : type === 'CASH' ? 'rgba(16, 185, 129, 0.15)' : type === 'CREDIT_CARD' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`,
+    border: `1px solid ${type === 'BANK' ? 'rgba(99, 102, 241, 0.15)' : type === 'CASH' ? 'rgba(16, 185, 129, 0.15)' : type === 'WALLET' ? 'rgba(6, 182, 212, 0.15)' : type === 'CREDIT_CARD' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`,
   }),
   deleteBtn: {
     background: 'transparent',

@@ -4,6 +4,7 @@ import com.personalfinance.manager.model.*;
 import com.personalfinance.manager.repository.*;
 import com.personalfinance.manager.service.CategoryService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final TransactionRepository transactionRepository;
     private final BudgetRepository budgetRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     public DatabaseSeeder(CategoryService categoryService,
                           UserRepository userRepository,
@@ -31,7 +33,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                           CategoryRepository categoryRepository,
                           TransactionRepository transactionRepository,
                           BudgetRepository budgetRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          JdbcTemplate jdbcTemplate) {
         this.categoryService = categoryService;
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
@@ -39,11 +42,28 @@ public class DatabaseSeeder implements CommandLineRunner {
         this.transactionRepository = transactionRepository;
         this.budgetRepository = budgetRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
+        // Run database migration to ensure accounts type column accepts WALLET
+        try {
+            jdbcTemplate.execute("ALTER TABLE accounts MODIFY COLUMN type VARCHAR(50) NOT NULL");
+            System.out.println("Database Migration: Altered accounts type column successfully.");
+        } catch (Exception e) {
+            System.out.println("Database Migration: Skipping table alter or already varchar: " + e.getMessage());
+        }
+
+        // Run database migration to drop end_date from budgets table
+        try {
+            jdbcTemplate.execute("ALTER TABLE budgets DROP COLUMN end_date");
+            System.out.println("Database Migration: Dropped end_date column from budgets successfully.");
+        } catch (Exception e) {
+            System.out.println("Database Migration: Skipping budgets end_date drop or already dropped: " + e.getMessage());
+        }
+
         // 1. Seed categories
         categoryService.seedDefaultCategories();
 
@@ -96,24 +116,24 @@ public class DatabaseSeeder implements CommandLineRunner {
         Account checking = new Account();
         checking.setName("Checking Account");
         checking.setType(AccountType.BANK);
-        checking.setBalance(BigDecimal.valueOf(3760.00)); // $500.00 initial + $4850.00 incomes - $1490.00 expenses - $100.00 transfer
-        checking.setCurrency("USD");
+        checking.setBalance(BigDecimal.valueOf(246200.00)); // ₹50000.00 initial + ₹280000.00 incomes - ₹73800.00 expenses - ₹10000.00 transfer
+        checking.setCurrency("INR");
         checking.setUser(demoUser);
         checking = accountRepository.save(checking);
 
         Account wallet = new Account();
         wallet.setName("Cash Wallet");
         wallet.setType(AccountType.CASH);
-        wallet.setBalance(BigDecimal.valueOf(150.00)); // $50.00 initial + $100.00 transfer in
-        wallet.setCurrency("USD");
+        wallet.setBalance(BigDecimal.valueOf(15000.00)); // ₹5000.00 initial + ₹10000.00 transfer in
+        wallet.setCurrency("INR");
         wallet.setUser(demoUser);
         wallet = accountRepository.save(wallet);
 
         Account investment = new Account();
         investment.setName("Investment Portfolio");
         investment.setType(AccountType.INVESTMENT);
-        investment.setBalance(BigDecimal.valueOf(12500.00));
-        investment.setCurrency("USD");
+        investment.setBalance(BigDecimal.valueOf(1000000.00));
+        investment.setCurrency("INR");
         investment.setUser(demoUser);
         investment = accountRepository.save(investment);
 
@@ -125,10 +145,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (foodCat != null) {
             Budget foodBudget = new Budget();
             foodBudget.setCategory(foodCat);
-            foodBudget.setLimitAmount(BigDecimal.valueOf(400.00));
-            foodBudget.setCurrentAmount(BigDecimal.valueOf(180.00));
+            foodBudget.setLimitAmount(BigDecimal.valueOf(30000.00));
+            foodBudget.setCurrentAmount(BigDecimal.valueOf(15000.00));
             foodBudget.setStartDate(startOfMonth);
-            foodBudget.setEndDate(endOfMonth);
             foodBudget.setUser(demoUser);
             budgetRepository.save(foodBudget);
         }
@@ -136,10 +155,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (rentCat != null) {
             Budget rentBudget = new Budget();
             rentBudget.setCategory(rentCat);
-            rentBudget.setLimitAmount(BigDecimal.valueOf(1200.00));
-            rentBudget.setCurrentAmount(BigDecimal.valueOf(1200.00));
+            rentBudget.setLimitAmount(BigDecimal.valueOf(50000.00));
+            rentBudget.setCurrentAmount(BigDecimal.valueOf(50000.00));
             rentBudget.setStartDate(startOfMonth);
-            rentBudget.setEndDate(endOfMonth);
             rentBudget.setUser(demoUser);
             budgetRepository.save(rentBudget);
         }
@@ -147,10 +165,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         // 5. Seed Transactions (Current month timeline scattering for charts visualization)
         LocalDateTime baseTime = LocalDateTime.now();
 
-        // Income: Monthly Salary ($4500.00)
+        // Income: Monthly Salary (₹250000.00)
         Transaction salaryTrans = new Transaction();
         salaryTrans.setDescription("Monthly Salary");
-        salaryTrans.setAmount(BigDecimal.valueOf(4500.00));
+        salaryTrans.setAmount(BigDecimal.valueOf(250000.00));
         salaryTrans.setDate(baseTime.minusDays(5));
         salaryTrans.setType(TransactionType.INCOME);
         salaryTrans.setCategory(salaryCat);
@@ -158,10 +176,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         salaryTrans.setUser(demoUser);
         transactionRepository.save(salaryTrans);
 
-        // Income: Freelance Work ($350.00)
+        // Income: Freelance Work (₹30000.00)
         Transaction freelanceTrans = new Transaction();
         freelanceTrans.setDescription("Freelance Design");
-        freelanceTrans.setAmount(BigDecimal.valueOf(350.00));
+        freelanceTrans.setAmount(BigDecimal.valueOf(30000.00));
         freelanceTrans.setDate(baseTime.minusDays(2));
         freelanceTrans.setType(TransactionType.INCOME);
         freelanceTrans.setCategory(salaryCat);
@@ -169,10 +187,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         freelanceTrans.setUser(demoUser);
         transactionRepository.save(freelanceTrans);
 
-        // Expense: Rent ($1200.00)
+        // Expense: Rent (₹50000.00)
         Transaction rentTrans = new Transaction();
         rentTrans.setDescription("Apartment Rent");
-        rentTrans.setAmount(BigDecimal.valueOf(1200.00));
+        rentTrans.setAmount(BigDecimal.valueOf(50000.00));
         rentTrans.setDate(baseTime.minusDays(4));
         rentTrans.setType(TransactionType.EXPENSE);
         rentTrans.setCategory(rentCat);
@@ -180,10 +198,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         rentTrans.setUser(demoUser);
         transactionRepository.save(rentTrans);
 
-        // Expense: Grocery ($180.00)
+        // Expense: Grocery (₹15000.00)
         Transaction groceryTrans = new Transaction();
         groceryTrans.setDescription("Whole Foods Groceries");
-        groceryTrans.setAmount(BigDecimal.valueOf(180.00));
+        groceryTrans.setAmount(BigDecimal.valueOf(15000.00));
         groceryTrans.setDate(baseTime.minusDays(3));
         groceryTrans.setType(TransactionType.EXPENSE);
         groceryTrans.setCategory(foodCat);
@@ -191,10 +209,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         groceryTrans.setUser(demoUser);
         transactionRepository.save(groceryTrans);
 
-        // Expense: Electric Bill ($95.00)
+        // Expense: Electric Bill (₹8000.00)
         Transaction powerTrans = new Transaction();
         powerTrans.setDescription("Power Electric Bill");
-        powerTrans.setAmount(BigDecimal.valueOf(95.00));
+        powerTrans.setAmount(BigDecimal.valueOf(8000.00));
         powerTrans.setDate(baseTime.minusDays(1));
         powerTrans.setType(TransactionType.EXPENSE);
         powerTrans.setCategory(utilitiesCat);
@@ -202,10 +220,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         powerTrans.setUser(demoUser);
         transactionRepository.save(powerTrans);
 
-        // Expense: Netflix ($15.00)
+        // Expense: Netflix (₹800.00)
         Transaction netflixTrans = new Transaction();
         netflixTrans.setDescription("Netflix Streaming");
-        netflixTrans.setAmount(BigDecimal.valueOf(15.00));
+        netflixTrans.setAmount(BigDecimal.valueOf(800.00));
         netflixTrans.setDate(baseTime.minusHours(4));
         netflixTrans.setType(TransactionType.EXPENSE);
         netflixTrans.setCategory(entertainmentCat);
@@ -213,10 +231,10 @@ public class DatabaseSeeder implements CommandLineRunner {
         netflixTrans.setUser(demoUser);
         transactionRepository.save(netflixTrans);
 
-        // Transfer: ATM Withdrawal ($100.00)
+        // Transfer: ATM Withdrawal (₹10000.00)
         Transaction atmTrans = new Transaction();
         atmTrans.setDescription("ATM Cash Withdrawal");
-        atmTrans.setAmount(BigDecimal.valueOf(100.00));
+        atmTrans.setAmount(BigDecimal.valueOf(10000.00));
         atmTrans.setDate(baseTime.minusHours(12));
         atmTrans.setType(TransactionType.TRANSFER);
         atmTrans.setCategory(utilitiesCat);

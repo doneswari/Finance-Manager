@@ -22,6 +22,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND (t.fromAccount.id = :accountId OR t.toAccount.id = :accountId) ORDER BY t.date DESC")
     List<Transaction> findByUserIdAndAccountId(@Param("userId") Long userId, @Param("accountId") Long accountId);
 
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.user.id = :userId AND t.category.id = :categoryId AND t.type = 'EXPENSE' AND t.date BETWEEN :start AND :end")
-    java.math.BigDecimal sumExpensesByCategoryAndDateRange(@Param("userId") Long userId, @Param("categoryId") Long categoryId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.user.id = :userId AND t.category.id = :categoryId AND t.type = 'EXPENSE' AND t.date >= :start")
+    java.math.BigDecimal sumExpensesByCategoryFromDate(@Param("userId") Long userId, @Param("categoryId") Long categoryId, @Param("start") LocalDateTime start);
 }

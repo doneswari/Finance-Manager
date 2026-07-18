@@ -26,8 +26,7 @@ public class BudgetDTO {
     @NotNull(message = "Start date is required")
     private LocalDate startDate;
 
-    @NotNull(message = "End date is required")
-    private LocalDate endDate;
+
 
     @NotNull(message = "Category ID is required")
     private Long categoryId;

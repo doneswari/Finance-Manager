@@ -8,7 +8,8 @@ import Accounts from './pages/Accounts';
 import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
 import Categories from './pages/Categories';
-import InvestmentCalculator from './pages/InvestmentCalculator';
+import Expenses from './pages/Expenses';
+import Wallets from './pages/Wallets';
 
 const AppContent = () => {
   const { user, loading } = useAuth();
@@ -31,7 +32,8 @@ const AppContent = () => {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/budgets" element={<Budgets />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/investment-calculator" element={<InvestmentCalculator />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/wallets" element={<Wallets />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

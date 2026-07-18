@@ -2,6 +2,7 @@ com\personalfinance\manager\model\TransactionType.class
 com\personalfinance\manager\config\DatabaseSeeder.class
 com\personalfinance\manager\service\BudgetServiceImpl.class
 com\personalfinance\manager\model\Category.class
+com\personalfinance\manager\service\RecurringExpenseService.class
 com\personalfinance\manager\dto\CategoryDTO.class
 com\personalfinance\manager\model\User$UserBuilder.class
 com\personalfinance\manager\PersonalFinanceManagerApplication.class
@@ -13,6 +14,8 @@ com\personalfinance\manager\dto\AuthRequest.class
 com\personalfinance\manager\model\AccountType.class
 com\personalfinance\manager\repository\AccountRepository.class
 com\personalfinance\manager\service\AccountServiceImpl.class
+com\personalfinance\manager\service\RecurringExpenseServiceImpl$1.class
+com\personalfinance\manager\model\RecurrenceFrequency.class
 com\personalfinance\manager\dto\SignupRequest.class
 com\personalfinance\manager\exception\GlobalExceptionHandler.class
 com\personalfinance\manager\model\Account.class
@@ -34,8 +37,10 @@ com\personalfinance\manager\dto\AccountDTO$AccountDTOBuilder.class
 com\personalfinance\manager\model\Category$CategoryBuilder.class
 com\personalfinance\manager\exception\ErrorResponse.class
 com\personalfinance\manager\security\UserDetailsServiceImpl.class
+com\personalfinance\manager\dto\RecurringExpenseDTO.class
 com\personalfinance\manager\controller\AuthController.class
 com\personalfinance\manager\model\Budget$BudgetBuilder.class
+com\personalfinance\manager\controller\ReceiptController.class
 com\personalfinance\manager\repository\CategoryRepository.class
 com\personalfinance\manager\model\Budget.class
 com\personalfinance\manager\config\SecurityConfig.class
@@ -43,10 +48,14 @@ com\personalfinance\manager\exception\ResourceNotFoundException.class
 com\personalfinance\manager\service\TransactionService.class
 com\personalfinance\manager\controller\BudgetController.class
 com\personalfinance\manager\model\Transaction.class
+com\personalfinance\manager\model\RecurringExpense.class
+com\personalfinance\manager\service\RecurringExpenseServiceImpl.class
 com\personalfinance\manager\model\Transaction$TransactionBuilder.class
 com\personalfinance\manager\service\AccountService.class
 com\personalfinance\manager\dto\TransactionDTO.class
+com\personalfinance\manager\dto\RecurringExpenseDTO$RecurringExpenseDTOBuilder.class
 com\personalfinance\manager\controller\ReportController.class
+com\personalfinance\manager\repository\RecurringExpenseRepository.class
 com\personalfinance\manager\dto\AccountDTO.class
 com\personalfinance\manager\service\TransactionServiceImpl.class
 com\personalfinance\manager\exception\BadRequestException.class
@@ -55,3 +64,5 @@ com\personalfinance\manager\dto\BudgetDTO.class
 com\personalfinance\manager\dto\TransactionDTO$TransactionDTOBuilder.class
 com\personalfinance\manager\service\BudgetService.class
 com\personalfinance\manager\service\CategoryService.class
+com\personalfinance\manager\model\RecurringExpense$RecurringExpenseBuilder.class
+com\personalfinance\manager\controller\RecurringExpenseController.class

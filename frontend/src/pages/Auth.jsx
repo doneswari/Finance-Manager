@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Coins } from 'lucide-react';
+import { Coins, Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
   const { login, signup } = useAuth();
@@ -9,6 +9,9 @@ const Auth = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -26,11 +29,46 @@ const Auth = () => {
         setError(res.message);
       }
     } else {
-      const res = await signup(username, email, password);
+      // Client-side Validation
+      const trimmedUsername = username.trim();
+      if (trimmedUsername.length < 3 || trimmedUsername.length > 20) {
+        setError('Username must be between 3 and 20 characters.');
+        setLoading(false);
+        return;
+      }
+      
+      // Email format check
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        setError('Please enter a valid email address.');
+        setLoading(false);
+        return;
+      }
+
+      // Password complexity check
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters long.');
+        setLoading(false);
+        return;
+      }
+      if (!/[A-Za-z]/.test(password) || !/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password)) {
+        setError('Password must contain a mix of letters, numbers, and special symbols.');
+        setLoading(false);
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        setLoading(false);
+        return;
+      }
+
+      const res = await signup(trimmedUsername, email, password);
       if (res.success) {
         setSuccessMsg('Account created successfully! Please log in.');
         setIsLogin(true);
         setPassword('');
+        setConfirmPassword('');
       } else {
         setError(res.message);
       }
@@ -49,13 +87,13 @@ const Auth = () => {
 
         <div style={styles.tabs}>
           <button 
-            onClick={() => { setIsLogin(true); setError(''); setSuccessMsg(''); }}
+            onClick={() => { setIsLogin(true); setError(''); setSuccessMsg(''); setPassword(''); setConfirmPassword(''); setShowPassword(false); setShowConfirmPassword(false); }}
             style={{...styles.tab, ...(isLogin ? styles.activeTab : {})}}
           >
             Login
           </button>
           <button 
-            onClick={() => { setIsLogin(false); setError(''); setSuccessMsg(''); }}
+            onClick={() => { setIsLogin(false); setError(''); setSuccessMsg(''); setPassword(''); setConfirmPassword(''); setShowPassword(false); setShowConfirmPassword(false); }}
             style={{...styles.tab, ...(!isLogin ? styles.activeTab : {})}}
           >
             Sign Up
@@ -94,15 +132,49 @@ const Auth = () => {
 
           <div style={styles.inputGroup}>
             <label style={styles.label}>Password</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              className="glass-input" 
-              placeholder="••••••••"
-              required 
-            />
+            <div className="password-wrapper">
+              <input 
+                type={showPassword ? "text" : "password"} 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                className="glass-input" 
+                placeholder="••••••••"
+                required 
+              />
+              <button
+                type="button"
+                className="eye-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
+
+          {!isLogin && (
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Confirm Password</label>
+              <div className="password-wrapper">
+                <input 
+                  type={showConfirmPassword ? "text" : "password"} 
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)} 
+                  className="glass-input" 
+                  placeholder="••••••••"
+                  required 
+                />
+                <button
+                  type="button"
+                  className="eye-btn"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  title={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+          )}
 
           <button type="submit" disabled={loading} className="btn-primary" style={styles.submitBtn}>
             {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
